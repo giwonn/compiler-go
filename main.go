@@ -1,8 +1,8 @@
 package main
 
 import (
+	"compiler-go/repl"
 	"fmt"
-	"interpreter-go/repl"
 	"os"
 	"os/user"
 )

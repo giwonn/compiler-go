@@ -1,9 +1,9 @@
 package evaluator
 
 import (
+	"compiler-go/ast"
+	"compiler-go/object"
 	"fmt"
-	"interpreter-go/ast"
-	"interpreter-go/object"
 )
 
 func newError(format string, a ...interface{}) *object.Error {

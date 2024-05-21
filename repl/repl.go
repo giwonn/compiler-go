@@ -2,11 +2,11 @@ package repl
 
 import (
 	"bufio"
+	"compiler-go/evaluator"
+	"compiler-go/lexer"
+	"compiler-go/object"
+	"compiler-go/parser"
 	"fmt"
-	"interpreter-go/evaluator"
-	"interpreter-go/lexer"
-	"interpreter-go/object"
-	"interpreter-go/parser"
 	"io"
 )
 

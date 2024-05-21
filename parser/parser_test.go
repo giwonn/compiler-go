@@ -1,9 +1,9 @@
 package parser
 
 import (
+	"compiler-go/ast"
+	"compiler-go/lexer"
 	"fmt"
-	"interpreter-go/ast"
-	"interpreter-go/lexer"
 	"testing"
 )
 

@@ -1,8 +1,8 @@
 package evaluator
 
 import (
+	"compiler-go/object"
 	"fmt"
-	"interpreter-go/object"
 )
 
 var builtins = map[string]*object.Builtin{

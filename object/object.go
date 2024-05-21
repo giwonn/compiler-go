@@ -2,9 +2,9 @@ package object
 
 import (
 	"bytes"
+	"compiler-go/ast"
 	"fmt"
 	"hash/fnv"
-	"interpreter-go/ast"
 	"strings"
 )
 

@@ -1,10 +1,10 @@
 package parser
 
 import (
+	"compiler-go/ast"
+	"compiler-go/lexer"
+	"compiler-go/token"
 	"fmt"
-	"interpreter-go/ast"
-	"interpreter-go/lexer"
-	"interpreter-go/token"
 	"strconv"
 )
 

@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"interpreter-go/lexer"
-	"interpreter-go/object"
-	"interpreter-go/parser"
+	"compiler-go/lexer"
+	"compiler-go/object"
+	"compiler-go/parser"
 	"testing"
 )
 
