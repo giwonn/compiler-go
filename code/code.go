@@ -9,7 +9,30 @@ import (
 // 명령코드
 const (
 	OpConstant Opcode = iota
+	OpAdd
 )
+
+type Opcode byte
+
+type Definition struct {
+	Name              string
+	OperandByteWidths []int
+}
+
+var definitions = map[Opcode]*Definition{
+	OpConstant: {"OpConstant", []int{2}}, // OpContstant는 2byte(=16bit) 크기의 단일 피연산자를 가질 수 있음
+	OpAdd:      {"OpAdd", []int{}},
+}
+
+// Lookup 존재하는 opcode인지 체크
+func Lookup(op byte) (*Definition, error) {
+	def, ok := definitions[Opcode(op)]
+	if !ok {
+		return nil, fmt.Errorf("opcode %d undefined", op)
+	}
+
+	return def, nil
+}
 
 type Instructions []byte
 
@@ -47,32 +70,13 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 	}
 
 	switch operandCount {
+	case 0:
+		return def.Name
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
 	}
 
 	return fmt.Sprintf("ERROR: unhandled operandCount for %s\n", def.Name)
-}
-
-type Opcode byte
-
-type Definition struct {
-	Name              string
-	OperandByteWidths []int
-}
-
-var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}}, // OpContstant는 2byte(=16bit) 크기의 단일 피연산자를 가질 수 있음
-}
-
-// Lookup 존재하는 opcode인지 체크
-func Lookup(op byte) (*Definition, error) {
-	def, ok := definitions[OpConstant]
-	if !ok {
-		return nil, fmt.Errorf("opcode %d undefined", op)
-	}
-
-	return def, nil
 }
 
 // Make 바이트코드 피연산자 부호화
@@ -108,11 +112,13 @@ func Make(op Opcode, operands ...int) []byte {
 func ReadOperands(def *Definition, ins Instructions) ([]int, int) {
 	operands := make([]int, len(def.OperandByteWidths))
 	offset := 0
+
 	for i, width := range def.OperandByteWidths {
 		switch width {
 		case 2:
 			operands[i] = int(ReadUint16(ins[offset:]))
 		}
+
 		offset += width
 	}
 	return operands, offset

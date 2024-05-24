@@ -4,6 +4,7 @@ import (
 	"compiler-go/ast"
 	"compiler-go/code"
 	"compiler-go/object"
+	"fmt"
 )
 
 type Compiler struct {
@@ -58,6 +59,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		switch node.Operator {
+		case "+":
+			c.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("unknown operator %s", node.Operator)
+		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
@@ -72,7 +80,7 @@ func (c *Compiler) addConstant(obj object.Object) int {
 	return len(c.constants) - 1
 }
 
-// emit 피연산자 instruction 생성 후 추가 및 추가한 instruction 시작 위치 리턴
+// emit 피연산자 instruction 생성 후 추가. 추가한 instruction 시작 위치 리턴
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	instruction := code.Make(op, operands...)
 	pos := c.addInstruction(instruction)
