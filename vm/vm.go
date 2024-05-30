@@ -71,7 +71,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
-			err := vm.executeComparision(op)
+			err := vm.executeComparison(op)
 			if err != nil {
 				return err
 			}
