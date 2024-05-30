@@ -19,6 +19,8 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+	OpMinus
+	OpBang
 )
 
 type Opcode byte
@@ -40,6 +42,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:       {"OpEqual", []int{}},
 	OpNotEqual:    {"OpNotEqual", []int{}},
 	OpGreaterThan: {"OpGreaterThan", []int{}},
+	OpMinus:       {"OpMinus", []int{}},
+	OpBang:        {"OpBang", []int{}},
 }
 
 // Lookup 존재하는 opcode인지 체크
