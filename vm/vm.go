@@ -12,6 +12,8 @@ const StackSize = 2048
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 
+var Null = &object.Null{}
+
 type VM struct {
 	constants    []object.Object
 	instructions code.Instructions
@@ -84,6 +86,25 @@ func (vm *VM) Run() error {
 
 		case code.OpMinus:
 			err := vm.executeMinusOperator()
+			if err != nil {
+				return err
+			}
+
+		case code.OpJump:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(vm.instructions[ip+1:])) // 피연산자인 if문 이후의 위치를 읽어와 복호화함
+			ip += 2                                             // 피연산자 읽었으니 읽을 위치를 2만큼 증가
+
+			condition := vm.pop()     // vm에서 조건문 평가 결과 꺼내옴
+			if !isTruthy(condition) { // 조건이 false면 다음 루프에서 if문 이후부터 탐색하도록 수정
+				ip = pos - 1
+			}
+
+		case code.OpNull:
+			err := vm.push(Null)
 			if err != nil {
 				return err
 			}
@@ -206,6 +227,8 @@ func (vm *VM) executeBangOperator() error {
 		return vm.push(False)
 	case False:
 		return vm.push(True)
+	case Null:
+		return vm.push(True)
 	default:
 		return vm.push(False)
 	}
@@ -220,4 +243,18 @@ func (vm *VM) executeMinusOperator() error {
 
 	value := operand.(*object.Integer).Value
 	return vm.push(&object.Integer{Value: -value})
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+
+	case *object.Boolean:
+		return obj.Value
+
+	case *object.Null:
+		return false
+
+	default:
+		return true
+	}
 }

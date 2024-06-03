@@ -10,6 +10,14 @@ import (
 type Compiler struct {
 	instructions code.Instructions // 생성한 바이트코드
 	constants    []object.Object   // 상수 풀
+
+	lastInstruction     EmittedInstruction
+	previousInstruction EmittedInstruction
+}
+
+type EmittedInstruction struct {
+	Opcode   code.Opcode
+	Position int
 }
 
 // 가상머신에 전달할 대상
@@ -20,8 +28,10 @@ type Bytecode struct {
 
 func New() *Compiler {
 	return &Compiler{
-		instructions: code.Instructions{},
-		constants:    []object.Object{},
+		instructions:        code.Instructions{},
+		constants:           []object.Object{},
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
 	}
 }
 
@@ -48,6 +58,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		c.emit(code.OpPop)
+
+	case *ast.BlockStatement:
+		for _, statement := range node.Statements {
+			err := c.Compile(statement)
+			if err != nil {
+				return err
+			}
+		}
 
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
@@ -118,6 +136,48 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpFalse)
 		}
+
+	case *ast.IfExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		// OpJumpNotTruthy 명령어에 쓰레기값 9999를 넣어서 배출
+		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIsPop() {
+			c.removeLastPop()
+		}
+
+		// if문이 true일 때 if문 내부 표현식이 실행되고 나서 Alternative를 건너뛰게 해줌
+		jumpPos := c.emit(code.OpJump, 9999)
+
+		// if문이 false일 때 jumpNotTruthyPos가 jump문 다음으로 스킵하여 Alternative를 읽도록 해줌
+		afterConsequencePos := len(c.instructions)
+		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+		if node.Alternative == nil { // Alternative가 없으면 OpNull을 스택에 추가함
+			c.emit(code.OpNull)
+		} else { // Alternative가 있으면 해당 표현식문의 평가값을 추가함
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+		}
+
+		afterAlternativePos := len(c.instructions)
+		c.changeOperand(jumpPos, afterAlternativePos)
+
 	}
 
 	return nil
@@ -133,6 +193,9 @@ func (c *Compiler) addConstant(obj object.Object) int {
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	instruction := code.Make(op, operands...)
 	pos := c.addInstruction(instruction)
+
+	c.setLastInstruction(op, pos)
+
 	return pos
 }
 
@@ -141,4 +204,35 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	posNewInstruction := len(c.instructions)
 	c.instructions = append(c.instructions, ins...)
 	return posNewInstruction
+}
+
+func (c *Compiler) setLastInstruction(op code.Opcode, pos int) {
+	previous := c.lastInstruction
+	last := EmittedInstruction{Opcode: op, Position: pos}
+
+	c.previousInstruction = previous
+	c.lastInstruction = last
+}
+
+func (c *Compiler) lastInstructionIsPop() bool {
+	return c.lastInstruction.Opcode == code.OpPop
+}
+
+// 이러면 c.previousInstruction이 c.lastInstruction과 같아지지 않나?
+func (c *Compiler) removeLastPop() {
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.previousInstruction
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+	op := code.Opcode(c.instructions[opPos])
+	newInstruction := code.Make(op, operand)
+
+	c.replaceInstruction(opPos, newInstruction)
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	for i := 0; i < len(newInstruction); i++ {
+		c.instructions[pos+i] = newInstruction[i]
+	}
 }

@@ -21,6 +21,9 @@ const (
 	OpGreaterThan
 	OpMinus
 	OpBang
+	OpJumpNotTruthy // 조건문을 참일 때만 해당하는 코드를 실행한다. 즉, false 일때만 코드를 건너뜀.
+	OpJump          // 조건에 상관없이 무조건 점프하는 명령어
+	OpNull
 )
 
 type Opcode byte
@@ -31,19 +34,22 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant:    {"OpConstant", []int{2}}, // OpContstant는 2byte(=16bit) 크기의 단일 피연산자를 가질 수 있음
-	OpAdd:         {"OpAdd", []int{}},
-	OpPop:         {"OpPop", []int{}},
-	OpSub:         {"OpSub", []int{}},
-	OpMul:         {"OpMul", []int{}},
-	OpDiv:         {"OpDiv", []int{}},
-	OpTrue:        {"OpTrue", []int{}},
-	OpFalse:       {"OpFalse", []int{}},
-	OpEqual:       {"OpEqual", []int{}},
-	OpNotEqual:    {"OpNotEqual", []int{}},
-	OpGreaterThan: {"OpGreaterThan", []int{}},
-	OpMinus:       {"OpMinus", []int{}},
-	OpBang:        {"OpBang", []int{}},
+	OpConstant:      {"OpConstant", []int{2}}, // OpContstant는 2byte(=16bit) 크기의 단일 피연산자를 가질 수 있음
+	OpAdd:           {"OpAdd", []int{}},
+	OpPop:           {"OpPop", []int{}},
+	OpSub:           {"OpSub", []int{}},
+	OpMul:           {"OpMul", []int{}},
+	OpDiv:           {"OpDiv", []int{}},
+	OpTrue:          {"OpTrue", []int{}},
+	OpFalse:         {"OpFalse", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpGreaterThan:   {"OpGreaterThan", []int{}},
+	OpMinus:         {"OpMinus", []int{}},
+	OpBang:          {"OpBang", []int{}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	OpJump:          {"OpJump", []int{2}},
+	OpNull:          {"OpNull", []int{}},
 }
 
 // Lookup 존재하는 opcode인지 체크
