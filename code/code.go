@@ -24,6 +24,8 @@ const (
 	OpJumpNotTruthy // 조건문을 참일 때만 해당하는 코드를 실행한다. 즉, false 일때만 코드를 건너뜀.
 	OpJump          // 조건에 상관없이 무조건 점프하는 명령어
 	OpNull
+	OpSetGlobal
+	OpGetGlobal
 )
 
 type Opcode byte
@@ -50,6 +52,8 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
 	OpNull:          {"OpNull", []int{}},
+	OpSetGlobal:     {"OpSetGlobal", []int{2}},
+	OpGetGlobal:     {"OpGetGlobal", []int{2}},
 }
 
 // Lookup 존재하는 opcode인지 체크
